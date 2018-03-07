@@ -21,6 +21,10 @@ class Catalin_Seo_CategoryController extends Mage_Catalog_CategoryController
 
     public function viewAction()
     {
+        if(Mage::app()->getRequest()->getParam('amfpc_ajax_blocks')){
+            return parent::viewAction();
+        }
+        
         if (($category = $this->_initCatagory())) {
             $design = Mage::getSingleton('catalog/design');
             $settings = $design->getDesignSettings($category);
