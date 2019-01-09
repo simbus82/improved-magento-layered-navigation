@@ -369,9 +369,9 @@ var CatalinSeoHandler = {
                 setup: function () {
                     this.toggleElements = jQuery(
                         // This selects the menu on the My Account and CMS pages
-                        '.col-left-first .block:not(.block-layered-nav) .block-title, ' +
+                        'body:not(.catalog-category-view) .col-left-first .block:not(.block-layered-nav) .block-title, ' +
                         'body:not(.catalog-category-view) .col-left-first .block-layered-nav .block-subtitle--filter, ' +
-                        '.sidebar:not(.col-left-first) .block .block-title'
+                        'body:not(.catalog-category-view) .sidebar:not(.col-left-first) .block .block-title'
                     );
                 },
                 match: function () {
