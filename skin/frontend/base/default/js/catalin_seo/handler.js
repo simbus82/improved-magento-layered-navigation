@@ -8,15 +8,13 @@ var CatalinSeoHandler = {
         currentMinPrice: 0,
         currentMaxPrice: 0
     },
-    handlePriceEvent: function (val) {
+    handlePriceEvent: function () {
         var self = this;
-        if (val) {
-            var url = self.priceSlider.urlTemplate.replace('__PRICE_VALUE__', val);
-            if (self.isAjaxEnabled) {
-                self.sendAjaxRequest(url);
-            } else {
-                window.location.href = url;
-            }
+        var url = self.priceSlider.urlTemplate.replace('__PRICE_VALUE__', this.priceSlider.currentMinPrice + "-" + this.priceSlider.currentMaxPrice);
+        if (self.isAjaxEnabled) {
+            self.sendAjaxRequest(url);
+        } else {
+            window.location.href = url;
         }
     },
     handleEvent: function (el, event) {
@@ -53,6 +51,8 @@ var CatalinSeoHandler = {
 
         $('loading').show();
         $('ajax-errors').hide();
+        
+        jQuery(document).trigger('catalin:requestStarted');
 
         self.pushState(null, url, false);
 
@@ -148,23 +148,23 @@ var CatalinSeoHandler = {
     },
     bindPriceSlider: function () {
         var self = this;
-        new Control.Slider([$('price-min'), $('price-max')], 'price-range', {
-                range: $R(self.priceSlider.minPrice, self.priceSlider.maxPrice),
-                sliderValue: [self.priceSlider.currentMinPrice, self.priceSlider.currentMaxPrice],
-                values: $R(self.priceSlider.minPrice, self.priceSlider.maxPrice),
-
-                restricted: true,
-                onChange: function (val) {
-                    if (val[0] != self.priceSlider.currentMinPrice || val[1] != self.priceSlider.currentMaxPrice) {
-                        $('button-price-slider').value = val.join('-');
-                    }
-                },
-                onSlide: function (val) {
-                    $('price-max-display').innerHTML = val[1];
-                    $('price-min-display').innerHTML = val[0];
-                }
-            }
-        );
+        // new Control.Slider([$('price-min'), $('price-max')], 'price-range', {
+        //         range: $R(self.priceSlider.minPrice, self.priceSlider.maxPrice),
+        //         sliderValue: [self.priceSlider.currentMinPrice, self.priceSlider.currentMaxPrice],
+        //         values: $R(self.priceSlider.minPrice, self.priceSlider.maxPrice),
+        //
+        //         restricted: true,
+        //         onChange: function (val) {
+        //             if (val[0] != self.priceSlider.currentMinPrice || val[1] != self.priceSlider.currentMaxPrice) {
+        //                 $('button-price-slider').value = val.join('-');
+        //             }
+        //         },
+        //         onSlide: function (val) {
+        //             $('price-max-display').innerHTML = val[1];
+        //             $('price-min-display').innerHTML = val[0];
+        //         }
+        //     }
+        // );
     },
     bindListeners: function () {
         var self = this;
@@ -370,7 +370,7 @@ var CatalinSeoHandler = {
                     this.toggleElements = jQuery(
                         // This selects the menu on the My Account and CMS pages
                         '.col-left-first .block:not(.block-layered-nav) .block-title, ' +
-                        '.col-left-first .block-layered-nav .block-subtitle--filter, ' +
+                        'body:not(.catalog-category-view) .col-left-first .block-layered-nav .block-subtitle--filter, ' +
                         '.sidebar:not(.col-left-first) .block .block-title'
                     );
                 },

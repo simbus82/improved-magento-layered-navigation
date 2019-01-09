@@ -1,21 +1,48 @@
 <?php if ($this->getMaxPriceFloat() != $this->getMinPriceFloat()) : ?>
-    <div id="price-range" class="filter-track price-slider">
-        <span id="price-min" class="filter-handle price-slider-from" title="Scroll to set your minimum value"></span>
-        <span id="price-max" class="filter-handle price-slider-to" title="Scroll to set your maximum value"></span>
+    <div id="price-range"></div>
+    <div style="margin-top: 10px;">
+        <div style="float:left">$<span id="slider-min-value"></span></div>
+        <div style="float:right">$<span id="slider-max-value"></span></div>
+        <div style="clear: both"></div>
     </div>
-    <ul>
-        <li>
-            <span id="price-min-display"><?php echo $this->getCurrentMinPriceFilter(); ?></span>
-            <span style="float: right;" id="price-max-display"><?php echo $this->getCurrentMaxPriceFilter(); ?></span>
-        </li>
-    </ul>
-    <div class="a-right">
-        <button id="button-price-slider" class="button"
-                onclick="javascript: CatalinSeoHandler.handlePriceEvent(this.value)" value="">
-            <span><span><?php echo $this->__('Update') ?></span></span></button>
+    <div style="text-align: right">
+        <button class="button-link"
+                onclick="javascript: CatalinSeoHandler.handlePriceEvent()">
+            <?php echo $this->__('Update') ?>
+        </button>
     </div>
 
+
     <script type="text/javascript">
+        var slider = document.getElementById('price-range');
+        noUiSlider.create(slider, {
+            start: [<?php echo $this->getCurrentMinPriceFilter(); ?>, <?php echo $this->getCurrentMaxPriceFilter(); ?>],
+            connect: true,
+            range: {
+                'min': <?php echo $this->getMinPriceFloat(); ?>,
+                'max': <?php echo $this->getMaxPriceFloat(); ?>
+            },
+            format: {
+                to: function (value) {
+                    return Math.round(value);
+                },
+                from: function (value) {
+                    return Math.round(value);
+                }
+            }
+        });
+
+        var priceValues = [
+            document.getElementById('slider-min-value'),
+            document.getElementById('slider-max-value')
+        ];
+
+        slider.noUiSlider.on('update', function (values, handle) {
+            priceValues[handle].innerHTML = values[handle];
+            CatalinSeoHandler.priceSlider.currentMinPrice = values[0];
+            CatalinSeoHandler.priceSlider.currentMaxPrice = values[1];
+        });
+
         <?php if ($this->helper('catalin_seo')->isAjaxEnabled()): ?>
         CatalinSeoHandler.isAjaxEnabled = true;
         <?php endif; ?>
