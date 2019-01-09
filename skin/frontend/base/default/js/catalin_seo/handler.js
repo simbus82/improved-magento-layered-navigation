@@ -53,6 +53,8 @@ var CatalinSeoHandler = {
 
         $('loading').show();
         $('ajax-errors').hide();
+        
+        jQuery(document).trigger('catalin:requestStarted');
 
         self.pushState(null, url, false);
 
