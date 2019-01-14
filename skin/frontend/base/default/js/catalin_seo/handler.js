@@ -54,12 +54,12 @@ var CatalinSeoHandler = {
         
         jQuery(document).trigger('catalin:requestStarted');
 
+        console.log('catalin:requestStarted');
         self.pushState(null, url, false);
 
         new Ajax.Request(fullUrl, {
             method: 'get',
             onSuccess: function (transport) {
-                console.log(transport)
                 if (transport.responseJSON) {
                     $('catalog-listing').update(transport.responseJSON.listing);
                     
@@ -67,10 +67,6 @@ var CatalinSeoHandler = {
                         $('subheading').update(transport.responseJSON.subheading);
                     }
                     
-                    jQuery('html, body').animate({
-                        scrollTop: jQuery('#catalog-listing').offset().top - 20
-                    });
-
                     if(jQuery.fn.jail){
                         jQuery('#catalog-listing img.lazy').jail({
                             event: 'load+scroll+mouseover',
@@ -87,7 +83,7 @@ var CatalinSeoHandler = {
                         layer: transport.responseJSON.layer
                     }, url, true);
                     self.ajaxListener();
-                    self.toggleContent();
+                    // self.toggleContent();
                     self.alignProductGridActions();
                     self.blockCollapsing();
                     self.showMoreListener();
@@ -103,6 +99,9 @@ var CatalinSeoHandler = {
                     $('ajax-errors').show();
                 }
                 $('loading').hide();
+                jQuery('html, body').animate({
+                    scrollTop: jQuery('#catalog-listing').offset().top - 20
+                });
             },
             onComplete: CatalinSeoHandler.sendUpdateEvent
         });
@@ -193,7 +192,7 @@ var CatalinSeoHandler = {
                         $('catalog-listing').update(State.data.listing);
                         $('layered-navigation').update(State.data.layer);
                         self.ajaxListener();
-                        self.toggleContent();
+                        // self.toggleContent();
                         self.alignProductGridActions();
                         self.blockCollapsing();
                         self.showMoreListener();
