@@ -54,7 +54,6 @@ var CatalinSeoHandler = {
         
         jQuery(document).trigger('catalin:requestStarted');
 
-        console.log('catalin:requestStarted');
         self.pushState(null, url, false);
 
         new Ajax.Request(fullUrl, {
@@ -83,7 +82,7 @@ var CatalinSeoHandler = {
                         layer: transport.responseJSON.layer
                     }, url, true);
                     self.ajaxListener();
-                    // self.toggleContent();
+                    self.toggleContent();
                     self.alignProductGridActions();
                     self.blockCollapsing();
                     self.showMoreListener();
@@ -146,24 +145,6 @@ var CatalinSeoHandler = {
         });
     },
     bindPriceSlider: function () {
-        var self = this;
-        // new Control.Slider([$('price-min'), $('price-max')], 'price-range', {
-        //         range: $R(self.priceSlider.minPrice, self.priceSlider.maxPrice),
-        //         sliderValue: [self.priceSlider.currentMinPrice, self.priceSlider.currentMaxPrice],
-        //         values: $R(self.priceSlider.minPrice, self.priceSlider.maxPrice),
-        //
-        //         restricted: true,
-        //         onChange: function (val) {
-        //             if (val[0] != self.priceSlider.currentMinPrice || val[1] != self.priceSlider.currentMaxPrice) {
-        //                 $('button-price-slider').value = val.join('-');
-        //             }
-        //         },
-        //         onSlide: function (val) {
-        //             $('price-max-display').innerHTML = val[1];
-        //             $('price-min-display').innerHTML = val[0];
-        //         }
-        //     }
-        // );
     },
     bindListeners: function () {
         var self = this;
@@ -171,6 +152,7 @@ var CatalinSeoHandler = {
             return false;
         }
         self.listenersBinded = true;
+        self.toggleContent();
         document.observe("dom:loaded", function () {
             self.ajaxListener();
 
@@ -192,7 +174,7 @@ var CatalinSeoHandler = {
                         $('catalog-listing').update(State.data.listing);
                         $('layered-navigation').update(State.data.layer);
                         self.ajaxListener();
-                        // self.toggleContent();
+                        self.toggleContent();
                         self.alignProductGridActions();
                         self.blockCollapsing();
                         self.showMoreListener();
@@ -249,14 +231,49 @@ var CatalinSeoHandler = {
                 groups[i].filter(':last').addClass('last');
             }
 
+            function scrollTo(el){
+                jQuery('html, body').animate({
+                    scrollTop: el.offset().top
+                }, 300);
+            }
+
             function toggleClasses(clickedItem, group) {
-                var index = group.index(clickedItem);
-                var i;
-                for (i = 0; i < groups.length; i++) {
-                    groups[i].removeClass('current');
-                    groups[i].eq(index).addClass('current');
+                if(clickedItem.hasClass('current')){
+                    clickedItem.next().slideUp(function(){
+                        clickedItem.removeClass('current');
+                        jQuery(this).removeClass('current');
+                        // scrollTo(clickedItem);
+                    });
+                    return;
+                }
+
+                if(wrapper.find('dd.current').length){
+                    // Sliding open a new one, closing old one
+                    wrapper.find('dd.current').slideUp(200, function(){
+                        wrapper.find('dd.current').removeClass('current');
+                        wrapper.find('dt.current').removeClass('current');
+                        scrollTo(clickedItem);
+                        clickedItem.next().slideDown(300, function(){
+                            clickedItem.addClass('current');
+                            jQuery(this).addClass('current');
+                        })
+                    });
+                } else {
+                    // none open, slide open new one
+                    clickedItem.addClass('current');
+                    scrollTo(clickedItem);
+                    clickedItem.next().slideDown(300, function(){
+                        jQuery(this).addClass('current');
+                    });
                 }
             }
+
+            jQuery(document).on('catalin:requestStarted', function(e){
+                jQuery('.toggle-content dd.current').slideUp(200, function(){
+                    jQuery(this).removeClass('current');
+                    scrollTo(jQuery('.products-grid'));
+                });
+            });
 
             //Toggle on tab (dt) click.
             dts.on('click', function (e) {
