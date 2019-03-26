@@ -75,23 +75,19 @@ class Catalin_SEO_Model_Catalog_Layer_Filter_Price extends Mage_Catalog_Model_La
         $collection = $this->getLayer()->getProductCollection();
         $select = $collection->getSelect();
         $conditions = $select->getPart(Zend_Db_Select::WHERE);
-
         // Remove price sql conditions
         $conditionsNoPrice = array();
         foreach ($conditions as $key => $condition) {
             if (stripos($condition, 'price_index') !== false) {
                 continue;
             }
-            $conditionsNoPrice[] = str_replace('AND ', '', $condition);
+            $conditionsNoPrice[] = $condition;
         }
         $select->setPart(Zend_Db_Select::WHERE, $conditionsNoPrice);
-
         $this->setData('min_price_float', floor($collection->getMinPrice()));
         $this->setData('max_price_float', ceil($collection->getMaxPrice()));
-
         // Restore all sql conditions
         $select->setPart(Zend_Db_Select::WHERE, $conditions);
-
         return $this;
     }
 
