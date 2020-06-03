@@ -65,6 +65,14 @@ var CatalinSeoHandler = {
                     if($('subheading')){
                         $('subheading').update(transport.responseJSON.subheading);
                     }
+
+                    if($('toptext')){
+                        $('toptext').update(transport.responseJSON.toptext);
+                    }
+
+                    if($('bottomtext')){
+                        $('bottomtext').update(transport.responseJSON.bottomtext);
+                    }
                     
                     if(jQuery.fn.jail){
                         jQuery('#catalog-listing img.lazy').jail({
