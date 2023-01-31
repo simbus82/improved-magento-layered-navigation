@@ -14,6 +14,14 @@
                 <type>skin_js</type>
                 <name helper="catalin_seo/getSkinJsUrl"/>
             </action>
+            <action method="addItem">
+                <type>skin_js</type>
+                <name>js/catalin_seo/nouislider.js</name>
+            </action>
+            <action method="addItem">
+                <type>skin_css</type>
+                <name>css/catalin_seo/nouislider.css</name>
+            </action>
         </reference>
         <reference name="product_list_toolbar">
             <block type="catalin_seo/catalog_product_list_pager" name="product_list_toolbar_pager"/>

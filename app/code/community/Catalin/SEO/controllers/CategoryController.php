@@ -21,6 +21,10 @@ class Catalin_Seo_CategoryController extends Mage_Catalog_CategoryController
 
     public function viewAction()
     {
+        if(Mage::app()->getRequest()->getParam('amfpc_ajax_blocks')){
+            return parent::viewAction();
+        }
+        
         if (($category = $this->_initCatagory())) {
             $design = Mage::getSingleton('catalog/design');
             $settings = $design->getDesignSettings($category);
@@ -90,7 +94,10 @@ class Catalin_Seo_CategoryController extends Mage_Catalog_CategoryController
 
                 $response = array(
                     'listing' => $listing,
-                    'layer' => $layer
+                    'layer' => $layer,
+                    'subheading' => Mage::helper('flaman_productlocations')->getFilterLocationName(),
+                    'toptext' => Mage::helper('flaman_productlocations')->getFilterCategoryText('top'),
+                    'bottomtext' => Mage::helper('flaman_productlocations')->getFilterCategoryText('bottom'),
                 );
 
                 $this->getResponse()->setHeader('Content-Type', 'application/json', true);

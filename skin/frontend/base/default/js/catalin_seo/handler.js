@@ -8,15 +8,13 @@ var CatalinSeoHandler = {
         currentMinPrice: 0,
         currentMaxPrice: 0
     },
-    handlePriceEvent: function (val) {
+    handlePriceEvent: function () {
         var self = this;
-        if (val) {
-            var url = self.priceSlider.urlTemplate.replace('__PRICE_VALUE__', val);
-            if (self.isAjaxEnabled) {
-                self.sendAjaxRequest(url);
-            } else {
-                window.location.href = url;
-            }
+        var url = self.priceSlider.urlTemplate.replace('__PRICE_VALUE__', this.priceSlider.currentMinPrice + "-" + this.priceSlider.currentMaxPrice);
+        if (self.isAjaxEnabled) {
+            self.sendAjaxRequest(url);
+        } else {
+            window.location.href = url;
         }
     },
     handleEvent: function (el, event) {
@@ -53,6 +51,8 @@ var CatalinSeoHandler = {
 
         $('loading').show();
         $('ajax-errors').hide();
+        
+        jQuery(document).trigger('catalin:requestStarted');
 
         self.pushState(null, url, false);
 
@@ -61,7 +61,30 @@ var CatalinSeoHandler = {
             onSuccess: function (transport) {
                 if (transport.responseJSON) {
                     $('catalog-listing').update(transport.responseJSON.listing);
-                    $('layered-navigation').update(transport.responseJSON.layer);
+                    
+                    if($('subheading')){
+                        $('subheading').update(transport.responseJSON.subheading);
+                    }
+
+                    if($('toptext')){
+                        $('toptext').update(transport.responseJSON.toptext);
+                    }
+
+                    if($('bottomtext')){
+                        $('bottomtext').update(transport.responseJSON.bottomtext);
+                    }
+                    
+                    if(jQuery.fn.jail){
+                        jQuery('#catalog-listing img.lazy').jail({
+                            event: 'load+scroll+mouseover',
+                            placeholder : "/skin/frontend/base/default/images/mgt_lazy_image_loader/loader.svg"
+                        });
+                    }
+                    
+                    if($('layered-navigation') != undefined) {
+                        $('layered-navigation').update(transport.responseJSON.layer);
+                    }
+                    
                     self.pushState({
                         listing: transport.responseJSON.listing,
                         layer: transport.responseJSON.layer
@@ -78,10 +101,14 @@ var CatalinSeoHandler = {
                             jQuery(document).trigger('product-media-loaded');
                         }, 0);
                     }
+                    
                 } else {
                     $('ajax-errors').show();
                 }
                 $('loading').hide();
+                jQuery('html, body').animate({
+                    scrollTop: jQuery('#catalog-listing').offset().top - 20
+                });
             },
             onComplete: CatalinSeoHandler.sendUpdateEvent
         });
@@ -126,24 +153,6 @@ var CatalinSeoHandler = {
         });
     },
     bindPriceSlider: function () {
-        var self = this;
-        new Control.Slider([$('price-min'), $('price-max')], 'price-range', {
-                range: $R(self.priceSlider.minPrice, self.priceSlider.maxPrice),
-                sliderValue: [self.priceSlider.currentMinPrice, self.priceSlider.currentMaxPrice],
-                values: $R(self.priceSlider.minPrice, self.priceSlider.maxPrice),
-
-                restricted: true,
-                onChange: function (val) {
-                    if (val[0] != self.priceSlider.currentMinPrice || val[1] != self.priceSlider.currentMaxPrice) {
-                        $('button-price-slider').value = val.join('-');
-                    }
-                },
-                onSlide: function (val) {
-                    $('price-max-display').innerHTML = val[1];
-                    $('price-min-display').innerHTML = val[0];
-                }
-            }
-        );
     },
     bindListeners: function () {
         var self = this;
@@ -151,6 +160,7 @@ var CatalinSeoHandler = {
             return false;
         }
         self.listenersBinded = true;
+        self.toggleContent();
         document.observe("dom:loaded", function () {
             self.ajaxListener();
 
@@ -162,7 +172,7 @@ var CatalinSeoHandler = {
 
                 self.pushState({
                     listing: $('catalog-listing').innerHTML,
-                    layer: $('layered-navigation').innerHTML
+                    layer: ($('layered-navigation') != undefined) ? $('layered-navigation').innerHTML : null
                 }, document.location.href, true);
 
                 // Bind to StateChange Event
@@ -229,14 +239,49 @@ var CatalinSeoHandler = {
                 groups[i].filter(':last').addClass('last');
             }
 
+            function scrollTo(el){
+                jQuery('html, body').animate({
+                    scrollTop: el.offset().top
+                }, 300);
+            }
+
             function toggleClasses(clickedItem, group) {
-                var index = group.index(clickedItem);
-                var i;
-                for (i = 0; i < groups.length; i++) {
-                    groups[i].removeClass('current');
-                    groups[i].eq(index).addClass('current');
+                if(clickedItem.hasClass('current')){
+                    clickedItem.next().slideUp(function(){
+                        clickedItem.removeClass('current');
+                        jQuery(this).removeClass('current');
+                        // scrollTo(clickedItem);
+                    });
+                    return;
+                }
+
+                if(wrapper.find('dd.current').length){
+                    // Sliding open a new one, closing old one
+                    wrapper.find('dd.current').slideUp(200, function(){
+                        wrapper.find('dd.current').removeClass('current');
+                        wrapper.find('dt.current').removeClass('current');
+                        scrollTo(clickedItem);
+                        clickedItem.next().slideDown(300, function(){
+                            clickedItem.addClass('current');
+                            jQuery(this).addClass('current');
+                        })
+                    });
+                } else {
+                    // none open, slide open new one
+                    clickedItem.addClass('current');
+                    scrollTo(clickedItem);
+                    clickedItem.next().slideDown(300, function(){
+                        jQuery(this).addClass('current');
+                    });
                 }
             }
+
+            jQuery(document).on('catalin:requestStarted', function(e){
+                jQuery('.toggle-content dd.current').slideUp(200, function(){
+                    jQuery(this).removeClass('current');
+                    scrollTo(jQuery('.products-grid'));
+                });
+            });
 
             //Toggle on tab (dt) click.
             dts.on('click', function (e) {
@@ -348,9 +393,9 @@ var CatalinSeoHandler = {
                 setup: function () {
                     this.toggleElements = jQuery(
                         // This selects the menu on the My Account and CMS pages
-                        '.col-left-first .block:not(.block-layered-nav) .block-title, ' +
-                        '.col-left-first .block-layered-nav .block-subtitle--filter, ' +
-                        '.sidebar:not(.col-left-first) .block .block-title'
+                        'body:not(.catalog-category-view) .col-left-first .block:not(.block-layered-nav) .block-title, ' +
+                        'body:not(.catalog-category-view) .col-left-first .block-layered-nav .block-subtitle--filter, ' +
+                        'body:not(.catalog-category-view) .sidebar:not(.col-left-first) .block .block-title'
                     );
                 },
                 match: function () {
